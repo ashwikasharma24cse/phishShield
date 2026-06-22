@@ -1,14 +1,34 @@
-import requests
 import base64
+import os
 import time
 
-API_KEY = "0fed0e065ea6a937b47f28af0c1a929f084e296ac74628ef0c458c3e2b2b7179"
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
+try:
+    import requests
+except ImportError:
+    requests = None
+
+API_KEY = os.environ.get("VIRUSTOTAL_API_KEY", "")
 
 
 def check_virustotal(url):
+    if requests is None:
+        return {
+            "error": "requests package is not installed"
+        }
+
+    if not API_KEY:
+        return {
+            "error": "VIRUSTOTAL_API_KEY is not set; add it to your .env file"
+        }
 
     headers = {
-        "x-apikey": "0fed0e065ea6a937b47f28af0c1a929f084e296ac74628ef0c458c3e2b2b7179"
+        "x-apikey": API_KEY
     }
 
     # URL ID encoding required by VirusTotal
@@ -22,7 +42,8 @@ def check_virustotal(url):
 
         response = requests.get(
         vt_url,
-        headers=headers
+        headers=headers,
+        timeout=8
         )
 
         if response.status_code == 404:
@@ -32,7 +53,8 @@ def check_virustotal(url):
                 headers=headers,
                 data={
                 "url": url
-                }
+                },
+                timeout=8
             )
 
             if submit_response.status_code != 200:
@@ -51,7 +73,8 @@ def check_virustotal(url):
 
             analysis_response = requests.get(
                 f"https://www.virustotal.com/api/v3/analyses/{analysis_id}",
-                headers=headers
+                headers=headers,
+                timeout=8
             )
 
             if analysis_response.status_code != 200:

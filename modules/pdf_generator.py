@@ -131,11 +131,17 @@ def generate_report(
         )
     )
 
-    for finding in result["findings"]:
+    findings = result.get("findingMessages") or result.get("findings", [])
+
+    for finding in findings:
+        if isinstance(finding, dict):
+            finding_text = finding.get("message", "")
+        else:
+            finding_text = finding
 
         content.append(
             Paragraph(
-                finding,
+                finding_text,
                 styles["BodyText"]
             )
         )

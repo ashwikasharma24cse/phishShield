@@ -1,27 +1,29 @@
 <!DOCTYPE html>
 <html>
 <head>
-
     <title>PhishShield</title>
-
     <link rel="stylesheet" href="popup.css">
-
 </head>
-
 <body>
+    <main class="shell">
+        <header class="topbar">
+            <div>
+                <h1>PhishShield</h1>
+                <p id="activeTarget">Ready to scan</p>
+            </div>
+            <span id="statusPill" class="pill neutral">Idle</span>
+        </header>
 
-    <h2>PhishShield</h2>
+        <div class="tabs" role="tablist" aria-label="Scan mode">
+            <button id="scanBtn" class="tab active" type="button">Website</button>
+            <button id="emailBtn" class="tab" type="button">Email</button>
+        </div>
 
-    <button id="scanBtn">
-        Scan Current Website
-    </button>
-    <button id="emailBtn">
-    Analyze Gmail Email
-    </button>
-
-    <div id="result"></div>
+        <section id="result" class="panel empty">
+            <p>Opening scan in progress.</p>
+        </section>
+    </main>
 
     <script src="popup.js"></script>
-
 </body>
 </html>

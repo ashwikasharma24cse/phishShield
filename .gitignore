@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# Virtual environment
+.venv/
+venv/
+env/
+
+# Environment / secrets
+.env
+*.key
+
+# OS
+.DS_Store
+
+# Generated reports
+reports/*.pdf

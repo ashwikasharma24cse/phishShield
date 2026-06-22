@@ -1,162 +1,124 @@
 <!DOCTYPE html>
 <html>
-
 <head>
-
     <title>PhishShield</title>
-
-    <link
-        rel="stylesheet"
-        href="{{ url_for('static', filename='style.css') }}"
-    >
-
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-
 <body>
+<main class="page">
+    <section class="hero">
+        <div>
+            <h1>PhishShield</h1>
+            <p>Analyze URLs for phishing indicators, domain risk, SSL status, and reputation signals.</p>
+        </div>
+        {% if result %}
+            <span class="risk-pill {{ result.risk | lower }}">{{ result.risk }}</span>
+        {% endif %}
+    </section>
 
-<div class="container">
-
-    <h1>PhishShield</h1>
-
-    <form method="POST">
-
-
-
-        <input
-            type="text"
-            name="url"
-            placeholder="Enter URL"
-            required
-        >
-
-        <button type="submit">
-            Analyze
-        </button>
-
+    <form class="scan-form" method="POST">
+        <input type="text" name="url" placeholder="Enter URL to analyze" required>
+        <button type="submit">Analyze</button>
     </form>
 
     {% if result %}
+        <section class="summary-card">
+            <div class="score-ring {{ result.risk | lower }}">
+                {{ result.score }}
+            </div>
+            <div>
+                <h2>{{ result.status }}</h2>
+                <p class="muted">{{ result.url }}</p>
+                {% if result.risk == "HIGH" %}
+                    <p>Avoid entering credentials or payment information on this site.</p>
+                {% elif result.risk == "MEDIUM" %}
+                    <p>Proceed carefully and verify the domain before interacting.</p>
+                {% else %}
+                    <p>No major phishing indicators were detected.</p>
+                {% endif %}
+            </div>
+        </section>
 
-        <h2>{{ result.status }}</h2>
+        <section class="metrics">
+            <article>
+                <span>Registered domain</span>
+                <strong>{{ result.registeredDomain or "Unavailable" }}</strong>
+            </article>
+            <article>
+                <span>SSL</span>
+                <strong>
+                    {% if ssl_result %}
+                        {% if ssl_result.valid %}Valid{% else %}Not verified{% endif %}
+                    {% else %}
+                        Unavailable
+                    {% endif %}
+                </strong>
+            </article>
+            <article>
+                <span>Domain age</span>
+                <strong>
+                    {% if whois_result and whois_result.age_days is defined %}
+                        {{ whois_result.age_days }} days
+                    {% else %}
+                        Unavailable
+                    {% endif %}
+                </strong>
+            </article>
+            <article>
+                <span>VirusTotal</span>
+                <strong>
+                    {% if vt_result and vt_result.malicious is defined %}
+                        {{ vt_result.malicious }} malicious
+                        {% if vt_result.suspicious is defined %}
+                            , {{ vt_result.suspicious }} suspicious
+                        {% endif %}
+                    {% else %}
+                        Unavailable
+                    {% endif %}
+                </strong>
+            </article>
+            <article>
+                <span>VT score</span>
+                <strong>{{ result.vtScore if result.vtScore is defined else 0 }}</strong>
+            </article>
+        </section>
 
-        <p>
-            <strong>URL:</strong>
-            {{ result.url }}
-        </p>
+        <section class="findings-card">
+            <div class="section-title">
+                <h2>Findings</h2>
+                <a class="report-link" href="/download-report">Download PDF</a>
+            </div>
 
-        <h3>
-            Threat Score:
-            {{ result.score }}/100
-        </h3>
-        <h3>
-            Risk Level:
-            {{ result.risk }}
-        </h3>
-        {% if vt_result %}
+            {% if result.findings %}
+                <div class="findings-list">
+                    {% for item in result.findings %}
+                        <article class="finding">
+                            <div class="finding-header">
+                                <h3>{{ item.message }}</h3>
+                                <span class="severity {{ item.severity | lower }}">{{ item.severity }}</span>
+                            </div>
+                            <p>
+                                {% if item.evidence %}{{ item.evidence }} · {% endif %}
+                                {% if item.scoreImpact %}+{{ item.scoreImpact }} score{% else %}No score impact{% endif %}
+                            </p>
+                        </article>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="muted">No suspicious indicators found.</p>
+            {% endif %}
+        </section>
 
-        <h2>VirusTotal Analysis</h2>
-
-        <p>
-          Malicious: {{ vt_result.malicious }}
-        </p>
-
-        <p>
-         Suspicious: {{ vt_result.suspicious }}
-        </p>
-
-         <p>
-        Harmless: {{ vt_result.harmless }}
-         </p>
-
-        <p>
-        Undetected: {{ vt_result.undetected }}
-       </p>
-       {% if vt_result.message %}
-       <p>{{ vt_result.message }}</p>
-       {% endif %}
-
+        {% if vt_result and vt_result.error %}
+            <p class="provider-note">VirusTotal unavailable: {{ vt_result.error }}</p>
+        {% endif %}
+        {% if whois_result and whois_result.error %}
+            <p class="provider-note">WHOIS unavailable: {{ whois_result.error }}</p>
+        {% endif %}
+        {% if ssl_result and ssl_result.error %}
+            <p class="provider-note">SSL check unavailable: {{ ssl_result.error }}</p>
+        {% endif %}
     {% endif %}
-
-        {% if whois_result %}
-
-        <h2>Domain Information</h2>
-
-        {% if whois_result.error %}
-
-        <p>{{ whois_result.error }}</p>
-
-        {% else %}
-
-        <p>
-        Domain: {{ whois_result.domain }}
-        </p>
-
-        <p>
-        Created: {{ whois_result.creation_date }}
-        </p>
-
-        <p>
-        Age: {{ whois_result.age_days }} days
-        </p>
-
-        {% if whois_result.age_days < 30 %}
-        <p>⚠ Very New Domain Detected</p>
-
-        {% endif %}
-
-        {% endif %}
-
-        {% endif %}
-
-        {% if ssl_result %}
-
-        <h2>SSL Certificate</h2>
-
-        {% if ssl_result.valid %}
-
-        <p>✅ SSL Certificate Valid</p>
-
-        {% else %}
-
-        <p>⚠ SSL Certificate Invalid</p>
-
-        <p>{{ ssl_result.error }}</p>
-
-        {% endif %}
-
-        {% endif %}
-
-        {% if result.findings %}
-            <h3>Findings</h3>
-
-            <ul>
-
-                {% for item in result.findings %}
-
-                    <li>{{ item }}</li>
-
-                {% endfor %}
-
-            </ul>
-
-        {% else %}
-
-            <p>
-                No suspicious indicators found.
-            </p>
-        <a href="/download-report">
-        <button>
-        Download PDF Report
-        </button>
-        </a>
-        {% endif %}
-
-    {% endif %}
-
-</div>
-
+</main>
 </body>
-
 </html>
-
-
