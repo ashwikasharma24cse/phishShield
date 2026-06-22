@@ -4,7 +4,10 @@ import time
 
 try:
     from dotenv import load_dotenv
-    load_dotenv()
+    # Anchor to the project root (one level up from this module) so the .env is
+    # found regardless of the process's current working directory.
+    _ENV_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), ".env")
+    load_dotenv(_ENV_PATH)
 except ImportError:
     pass
 
