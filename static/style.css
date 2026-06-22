@@ -1,0 +1,47 @@
+body{
+
+    background:#f4f4f4;
+
+    font-family:Arial;
+
+}
+
+.container{
+
+    width:700px;
+
+    margin:50px auto;
+
+    background:white;
+
+    padding:30px;
+
+    border-radius:10px;
+
+    text-align:center;
+
+}
+
+input{
+
+    width:90%;
+
+    padding:12px;
+
+    margin-bottom:15px;
+
+}
+
+button{
+
+    padding:12px 20px;
+
+    cursor:pointer;
+
+}
+
+ul{
+
+    text-align:left;
+
+}
